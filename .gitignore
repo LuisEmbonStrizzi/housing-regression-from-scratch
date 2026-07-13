@@ -1,0 +1,16 @@
+# Datos generados por el notebook (se regeneran al ejecutarlo)
+data/processed/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
