@@ -1,56 +1,33 @@
-# TP1: Regresión Lineal - Aprendizaje Automático y Aprendizaje Profundo
+# Housing prices, from scratch
 
-Este proyecto tiene como objetivo desarrollar y evaluar diversos modelos de regresión lineal para estimar el precio de venta de viviendas, implementando los algoritmos desde cero utilizando únicamente **numpy**
+Linear regression built entirely in **NumPy** — no scikit-learn — on a housing dataset that secretly mixes **two markets** (Argentina and the US, with mixed units and price scales). The interesting part isn't the model: it's everything the data tries to do to you along the way.
 
-## 📊 Descripción del Proyecto
-El trabajo aborda el ciclo completo de un proyecto de regresión lineal:
-1. **Análisis Exploratorio de Datos (EDA):** Limpieza, visualización y análisis de correlaciones.
-2. **Implementación de Modelos:** Creación de una clase de Regresión Lineal con métodos de Pseudo-inversa y Descenso por Gradiente.
-3. **Feature Engineering:** Construcción de características derivadas para mejorar la capacidad predictiva.
-4. **Regularización:** Implementación de penalizaciones L1 (Lasso) y L2 (Ridge) y aplicación a modelos.
-5. **Evaluación:** Selección del mejor modelo mediante learning curves y validación cruzada.
+![Final model comparison](docs/model_comparison.png)
 
+## Highlights
 
-## 📂 Estructura de Archivos
-Se sigue la estructura modular sugerida para facilitar la corrección y reutilización del código:
+- **Everything implemented by hand**: closed-form least squares (pseudo-inverse), gradient descent, L1/L2 regularization, k-fold cross-validation and stratified splitting live in [`src/`](src/) as a small, documented library.
+- **The data fights back**: mixed units (m² vs sqft), corrupted targets, missing values, and a bimodal market structure that produces a textbook **Simpson's paradox** — property age correlates *negatively* with price globally (-0.37) but *positively* inside each country (+0.53 / +0.36).
+- **Leakage-safe pipeline**: imputation statistics, normalization parameters and encoders are learned on the training split only, and the train/val split is stratified by country × price quartile.
+- **Main finding**: with a structurally bimodal dataset, **segmenting beats regularizing**. Ridge/Lasso barely move the needle, while fitting one model per market cuts validation RMSE from ~44k to ~33k USD.
 
-```text
-udesa-ml-tp1-regresion-lineal/
-├── data/
-│   ├── raw/                        # Datasets originales (casas_dev.csv, casas_test.csv)
-│   └── processed/                  # Datos generados por el notebook (no versionados)
-├── src/                            # Código fuente modularizado
-│   ├── __init__.py                 # Define la carpeta como paquete Python
-│   ├── models.py                   # Clase LinearRegression (Gradiente y Pseudo-inversa)
-│   ├── metrics.py                  # Funciones de error: MSE, MAE, RMSE, R2
-│   ├── preprocessing.py            # Normalización, limpieza e imputación (estadísticos de train)
-│   ├── feature_engineering.py      # Manejo del flujo de feature engineering
-│   ├── utils.py                    # Funciones útiles para graficar y entrenar modelos
-│   └── data_splitting.py           # Split aleatorio y estratificado, cross-validation
-├── notebooks/
-│   └── Entrega_TP1.ipynb           # Notebook con respuestas y gráficos finales
-├── requirements.txt                # Especificación de dependencias
-└── README.md                       # Descripción e instrucciones
-```
+## Results
 
-## ⚙️ Instalación y Uso
+| Model | Val RMSE (USD) | Test RMSE (USD) | R² (test) |
+|---|---|---|---|
+| Best global model (50 features) | 44,103 | — | — |
+| **Country-segmented model** | **33,324** | **32,383** | **0.876** |
 
-### 1. Configuración del Entorno
-Primero, usamos un entorno virtual para evitar conflictos de dependencias y luego ejecutamos:
+The val–test gap is under 1k USD — the stratified split and the leakage-safe preprocessing pay off exactly where they should.
+
+## Run it
+
 ```bash
 pip install -r requirements.txt
+jupyter lab notebooks/Entrega_TP1.ipynb   # narrative is in Spanish
 ```
 
-### 2. Ejecución
-Para visualizar los resultados y las respuestas a los ejercicios:
-1. Navegar a la carpeta `notebooks/`.
-2. Abrir `Entrega_TP1.ipynb` en Jupyter o VS Code.
-3. Configurar el kernel de python y correrlo.
+The notebook ships with all outputs, so it reads fine without executing anything. `data/processed/` is regenerated on run.
 
-El notebook ya incluye todos los outputs guardados, por lo que puede leerse sin ejecutarlo. Si se ejecuta, los archivos de `data/processed/` se regeneran automáticamente.
-
-## 📝 Autor
-* **Estudiante:** Luis Augusto Embon Strizzi
-* **Materia:** I302 - Aprendizaje Automático y Aprendizaje Profundo
-* **Fecha de entrega:** 27 de marzo de 2026
-
+---
+<sub>Built while taking I302 — Machine & Deep Learning at Universidad de San Andrés (2026).</sub>
